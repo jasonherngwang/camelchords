@@ -33,3 +33,4 @@ pnpm dev
 - `POSTGRES_URL` — Your Postgres connection string
 - `BASE_URL` — Base URL for the app (default: `http://localhost:3000`)
 - `AUTH_SECRET` — Secret for authentication
+- `GEMINI_API_KEY` — For generating songs
