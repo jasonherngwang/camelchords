@@ -1,8 +1,7 @@
-'use client';
+"use client";
 
-import { createContext, ReactNode } from 'react';
-
-import { Song } from '@/lib/db/schema';
+import { createContext, ReactNode } from "react";
+import { Song } from "@/lib/db/schema";
 
 type LibraryContextType = {
   songs: Song[];

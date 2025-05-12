@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { SongEditor } from './song-editor';
+import { SongViewer } from './song-viewer';
 
 export default async function SongPage({
   params,
@@ -9,7 +9,7 @@ export default async function SongPage({
   const { id: songId } = await params;
   return (
     <React.Suspense>
-      <SongEditor songId={songId} />
+      <SongViewer songId={songId} />
     </React.Suspense>
   );
 }

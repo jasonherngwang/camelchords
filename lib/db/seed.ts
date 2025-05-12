@@ -26,7 +26,7 @@ async function seed() {
     .insert(songs)
     .values({
       name: 'Test Song',
-      content: 'Test content',
+      content: '[C]Lyric lyric [G]lyric lyric',
       userId: user.id,
     })
     .returning();

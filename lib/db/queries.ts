@@ -3,7 +3,6 @@ import { db } from './drizzle';
 import { songs, users } from './schema';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth/session';
-import { Song } from './schema';
 
 export async function getUser() {
   const sessionCookie = (await cookies()).get('session');
@@ -43,20 +42,6 @@ export async function getSongs() {
     throw new Error('User not authenticated');
   }
   const result = await db.select().from(songs).where(eq(songs.userId, user.id));
-
-  return result;
-}
-
-export async function updateSong(updatedSong: Song) {
-  const result = await db
-    .update(songs)
-    .set({
-      name: updatedSong.name,
-      content: updatedSong.content,
-      updatedAt: new Date(),
-    })
-    .where(eq(songs.id, updatedSong.id))
-    .returning();
 
   return result;
 }

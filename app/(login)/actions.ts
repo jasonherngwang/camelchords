@@ -1,16 +1,17 @@
-'use server';
+"use server";
 
-import { z } from 'zod';
-import { eq, sql } from 'drizzle-orm';
-import { db } from '@/lib/db/drizzle';
-import { users, type NewUser } from '@/lib/db/schema';
-import { comparePasswords, hashPassword, setSession } from '@/lib/auth/session';
-import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+import { z } from "zod";
+import { eq, sql } from "drizzle-orm";
+import { db } from "@/lib/db/drizzle";
+import { users, type NewUser } from "@/lib/db/schema";
+import { comparePasswords, hashPassword, setSession } from "@/lib/auth/session";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import {
   validatedAction,
   validatedActionWithUser,
-} from '@/lib/auth/middleware';
+} from "@/lib/auth/middleware";
+import { revalidatePath } from "next/cache";
 
 const signInSchema = z.object({
   email: z.string().email().min(3).max(255),
@@ -28,7 +29,7 @@ export const signIn = validatedAction(signInSchema, async (data, formData) => {
 
   if (existingUsers.length === 0) {
     return {
-      error: 'Failed to sign in. Please try again.',
+      error: "Failed to sign in. Please try again.",
       email,
       password,
     };
@@ -42,7 +43,7 @@ export const signIn = validatedAction(signInSchema, async (data, formData) => {
 
   if (!isPasswordValid) {
     return {
-      error: 'Invalid email or password. Please try again.',
+      error: "Invalid email or password. Please try again.",
       email,
       password,
     };
@@ -50,7 +51,7 @@ export const signIn = validatedAction(signInSchema, async (data, formData) => {
 
   await setSession(existingUser);
 
-  redirect('/library');
+  redirect("/library");
 });
 
 const signUpSchema = z.object({
@@ -69,7 +70,7 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
 
   if (existingUsers.length > 0) {
     return {
-      error: 'User already exists. Please sign in.',
+      error: "User already exists. Please sign in.",
       email,
       password,
     };
@@ -80,24 +81,24 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
   const newUser: NewUser = {
     email,
     passwordHash,
-    role: 'owner',
+    role: "owner",
   };
 
   const [createdUser] = await db.insert(users).values(newUser).returning();
 
   if (!createdUser) {
     return {
-      error: 'Failed to create user. Please try again.',
+      error: "Failed to create user. Please try again.",
       email,
       password,
     };
   }
 
-  redirect('/library');
+  redirect("/library");
 });
 
 export async function signOut() {
-  (await cookies()).delete('session');
+  (await cookies()).delete("session");
 }
 
 const updatePasswordSchema = z
@@ -108,7 +109,7 @@ const updatePasswordSchema = z
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords don't match",
-    path: ['confirmPassword'],
+    path: ["confirmPassword"],
   });
 
 export const updatePassword = validatedActionWithUser(
@@ -122,12 +123,12 @@ export const updatePassword = validatedActionWithUser(
     );
 
     if (!isPasswordValid) {
-      return { error: 'Current password is incorrect.' };
+      return { error: "Current password is incorrect." };
     }
 
     if (currentPassword === newPassword) {
       return {
-        error: 'New password must be different from the current password.',
+        error: "New password must be different from the current password.",
       };
     }
 
@@ -137,7 +138,7 @@ export const updatePassword = validatedActionWithUser(
       .set({ passwordHash: newPasswordHash })
       .where(eq(users.id, user.id));
 
-    return { success: 'Password updated successfully.' };
+    return { success: "Password updated successfully." };
   }
 );
 
@@ -152,7 +153,7 @@ export const deleteAccount = validatedActionWithUser(
 
     const isPasswordValid = await comparePasswords(password, user.passwordHash);
     if (!isPasswordValid) {
-      return { error: 'Incorrect password. Account deletion failed.' };
+      return { error: "Incorrect password. Account deletion failed." };
     }
 
     // Soft delete
@@ -164,21 +165,26 @@ export const deleteAccount = validatedActionWithUser(
       })
       .where(eq(users.id, user.id));
 
-    (await cookies()).delete('session');
-    redirect('/sign-in');
+    (await cookies()).delete("session");
+    redirect("/sign-in");
   }
 );
 
 const updateAccountSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100),
-  email: z.string().email('Invalid email address'),
+  name: z.string().min(1, "Name is required").max(100),
+  email: z.string().email("Invalid email address"),
 });
 
 export const updateAccount = validatedActionWithUser(
   updateAccountSchema,
   async (data, _, user) => {
     const { name, email } = data;
-    db.update(users).set({ name, email }).where(eq(users.id, user.id));
-    return { success: 'Account updated successfully.' };
+    const [updatedUser] = await db
+      .update(users)
+      .set({ name, email })
+      .where(eq(users.id, user.id))
+      .returning();
+    revalidatePath(`/library`);
+    return { success: "Account updated successfully." };
   }
 );
