@@ -142,7 +142,7 @@ export function NavMain({ songs }: { songs: Song[] }) {
                     <SidebarMenuSubButton asChild>
                       <Link href="/library/create-song">
                         <PlusIcon className="stroke-primary" />
-                        <span>Create Song</span>
+                        <span>Create song</span>
                       </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
@@ -154,4 +154,4 @@ export function NavMain({ songs }: { songs: Song[] }) {
       </SidebarMenu>
     </SidebarGroup>
   );
-}
+} 

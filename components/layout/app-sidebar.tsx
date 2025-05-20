@@ -2,8 +2,8 @@
 
 import * as React from "react";
 
-import { NavMain } from "@/components/nav-main";
-import { UserDropdown } from "@/components/user-dropdown";
+import { NavMain } from "@/components/layout/nav-main";
+import { UserDropdown } from "@/components/layout/user-dropdown";
 import {
   Sidebar,
   SidebarContent,
@@ -12,26 +12,17 @@ import {
 
 import { LibraryContext } from "@/app/library/context";
 
-const data = {
-  navUser: [
-    {
-      title: "Sign out",
-      url: "/sign-out",
-    },
-  ],
-};
-
 export function AppSidebar({ ...props }) {
   const songsContext = React.useContext(LibraryContext);
 
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
-        <UserDropdown options={data.navUser} />
+        <UserDropdown />
       </SidebarHeader>
       <SidebarContent>
         <NavMain songs={songsContext.songs} />
       </SidebarContent>
     </Sidebar>
   );
-}
+} 

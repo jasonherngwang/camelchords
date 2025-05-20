@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronDown, Guitar } from "lucide-react";
+import { ChevronDown, Guitar, LogOut } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -15,15 +15,23 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useUser } from "@/lib/auth";
-import Link from "next/link";
+import { signOut } from "@/lib/actions/auth";
 
 export function UserDropdown({
   options,
 }: {
-  options: { title: string; url: string }[];
+  options?: { title: string; url: string; isSignOut?: boolean }[];
 }) {
   const { userPromise } = useUser();
   const user = React.use(userPromise);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Sign out failed:", error);
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -48,14 +56,23 @@ export function UserDropdown({
             className="w-[--radix-dropdown-menu-trigger-width]"
             align="start"
           >
-            {options.map((option) => (
-              <DropdownMenuItem key={option.title}>
-                <Link href={option.url} className="w-full">{option.title}</Link>
-              </DropdownMenuItem>
-            ))}
+            {options?.map((option) => {
+              if (option.isSignOut) {
+                return null;
+              }
+              return (
+                <DropdownMenuItem key={option.title} asChild>
+                  <a href={option.url} className="w-full">{option.title}</a>
+                </DropdownMenuItem>
+              );
+            })}
+            <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+              <LogOut className="stroke-primary" />
+              <span>Sign out</span>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
   );
-}
+} 

@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import { LibraryContext } from "@/app/library/context";
-import { parseSongContent } from "@/lib/utils";
+import { parseSongContent, ContentBlock } from "@/lib/songs/parser";
 import CreateSongPage from "@/app/library/create-song/page";
-import { ContentBlock } from "@/lib/utils";
 import { Song } from "@/lib/db/schema";
 import { Button } from "@/components/ui/button";
 import { UkuleleChordDiagram } from "./chord-diagram";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SongEditorProps {
   songId: string;
@@ -91,6 +91,16 @@ const SongReadOnly = ({ parsedSong }: DisplaySongProps) => {
             className="flex whitespace-nowrap overflow-x-auto"
           >
             {line.map((block, blockIndex) => {
+              if (block.type === "annotation") {
+                return (
+                  <div
+                    key={blockIndex}
+                    className="flex text-foreground whitespace-nowrap font-bold mt-6"
+                  >
+                    {block.content}
+                  </div>
+                );
+              }
               if (block.type === "lyric" && blockIndex === 0) {
                 return (
                   <div

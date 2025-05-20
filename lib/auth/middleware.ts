@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { User } from '@/lib/db/schema';
-import { getUser } from '@/lib/db/queries';
+import { z } from "zod";
+import { User } from "@/lib/db/schema";
+import { getUser } from "@/lib/db/queries";
 
 export type ActionState = {
   error?: string;
@@ -41,10 +41,11 @@ export function validatedActionWithUser<S extends z.ZodType<any, any>, T>(
   return async (prevState: ActionState, formData: FormData): Promise<T> => {
     const user = await getUser();
     if (!user) {
-      throw new Error('User is not authenticated');
+      throw new Error("User is not authenticated");
     }
 
     const result = schema.safeParse(Object.fromEntries(formData));
+    console.log({ result });
     if (!result.success) {
       return { error: result.error.errors[0].message } as T;
     }
